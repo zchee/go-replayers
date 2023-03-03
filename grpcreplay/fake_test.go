@@ -23,6 +23,7 @@ import (
 	pb "github.com/google/go-replayers/grpcreplay/proto/intstore"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
 
@@ -57,8 +58,9 @@ func (s *intStoreServer) stop() {
 	s.l.Close()
 }
 
-func (s *intStoreServer) Set(_ context.Context, item *pb.Item) (*pb.SetResponse, error) {
+func (s *intStoreServer) Set(ctx context.Context, item *pb.Item) (*pb.SetResponse, error) {
 	old := s.setItem(item)
+	ctx = metadata.AppendToOutgoingContext(ctx, "key", "value")
 	return &pb.SetResponse{PrevValue: old}, nil
 }
 

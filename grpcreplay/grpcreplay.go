@@ -233,13 +233,37 @@ func (rcs *recClientStream) RecvMsg(m interface{}) error {
 }
 
 func (rcs *recClientStream) Header() (metadata.MD, error) {
-	// TODO(jba): record.
-	return rcs.cstream.Header()
+	md, serr := rcs.cstream.Header()
+	e := &entry{
+		kind:     pb.Entry_HEADER,
+		refIndex: rcs.refIndex,
+	}
+	m := new(pb.Metadata)
+	for key, val := range md {
+		m.Metadata[key] = &pb.Metadata_StringSlice{Value: val}
+	}
+	e.msg.set(m, serr)
+	if _, err := rcs.rec.writeEntry(e); err != nil {
+		return nil, err
+	}
+	return md, serr
 }
 
 func (rcs *recClientStream) Trailer() metadata.MD {
-	// TODO(jba): record.
-	return rcs.cstream.Trailer()
+	md := rcs.cstream.Trailer()
+	e := &entry{
+		kind:     pb.Entry_TRAILER,
+		refIndex: rcs.refIndex,
+	}
+	m := new(pb.Metadata)
+	for key, val := range md {
+		m.Metadata[key] = &pb.Metadata_StringSlice{Value: val}
+	}
+	e.msg.set(m, nil)
+	if _, err := rcs.rec.writeEntry(e); err != nil {
+		return md
+	}
+	return md
 }
 
 func (rcs *recClientStream) CloseSend() error {

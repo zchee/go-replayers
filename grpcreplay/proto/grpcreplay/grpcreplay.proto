@@ -62,6 +62,12 @@ message Entry {
     //   else:        the received message
     // ref_index: index of matching CREATE_STREAM entry
     RECV = 5;   // message received from stream
+
+    HEADER = 6;
+
+    TRAILER = 7;
+
+    CLOSE_SEND = 8;
   }
 
   Kind kind = 1;
@@ -70,4 +76,12 @@ message Entry {
   bool is_error = 4;                // was response an error?
   int32 ref_index = 5;              // for RESPONSE, index of matching request;
                                     // for SEND/RECV, index of CREATE_STREAM
+}
+
+message Metadata {
+  message StringSlice {
+    repeated string value = 1;
+  }
+
+  map<string, StringSlice> metadata = 1;
 }
